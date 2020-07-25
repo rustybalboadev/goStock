@@ -1,6 +1,7 @@
-# goStock
-Track Stocks in the Command Line using goStock 📈
 <p align='center'>
+  
+  # goStock
+  ## Track Stocks in the Command Line using goStock 📈
   <img src='https://github.com/RustyBalboadev/goStock/blob/master/goStock.png'>
 </p>
 
