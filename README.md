@@ -1,0 +1,2 @@
+# goStock
+Track Stonks 📈
