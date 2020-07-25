@@ -21,7 +21,7 @@ func main() {
 	}
 	makeFiles(userDir)
 
-	parser := argparse.NewParser("StockPortfolio", "goStock Commands")
+	parser := argparse.NewParser("goStock", "goStock Commands")
 	addStonk := parser.String("a", "add", &argparse.Options{Help: "Add a Stonk Using Its Symbol", Required: false})
 	removeStonk := parser.String("r", "remove", &argparse.Options{Help: "Remove a Stonk Using Its Symbol", Required: false})
 	p := parser.Parse(os.Args)
