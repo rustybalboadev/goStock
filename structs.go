@@ -60,6 +60,9 @@ type APIResponse struct {
 				LastMarket            interface{} `json:"lastMarket"`
 			} `json:"price"`
 		} `json:"result"`
-		Error interface{} `json:"error"`
+		Error struct {
+			Code        string `json:"code"`
+			Description string `json:"description"`
+		} `json:"error"`
 	} `json:"quoteSummary"`
 }
