@@ -78,7 +78,6 @@ func handleErr(err error) {
 
 func showStonks(stonks []string) {
 	for i := 0; i < len(stonks)-1; i++ {
-		//userDir, err := os.UserHomeDir()
 		resp, err := http.Get("https://query1.finance.yahoo.com/v11/finance/quoteSummary/" + stonks[i] + "?modules=summaryDetail,price")
 		handleErr(err)
 		b, err := ioutil.ReadAll(resp.Body)
@@ -88,17 +87,11 @@ func showStonks(stonks []string) {
 		err = json.Unmarshal([]byte(string(body)), &t)
 		if t.QuoteSummary.Error.Description != "" {
 			remove(stonks[i])
-			//log.Fatal(color.RedString("Stonk Symbol " + stonks[i] + " Is Invalid"))
 			fmt.Println(color.RedString("\n\n!!!Stonk Symbol '" + stonks[i] + "' Is Invalid!!!"))
 			os.Exit(0)
 		}
 		symbol := t.QuoteSummary.Result[0].Price.Symbol
-		//currency := t.QuoteSummary.Result[0].SummaryDetail.Currency
 		bid := fmt.Sprintf("%.2f", t.QuoteSummary.Result[0].SummaryDetail.Bid.Raw)
-		//ask := t.QuoteSummary.Result[0].SummaryDetail.Ask.Raw
-		//dayLow := t.QuoteSummary.Result[0].SummaryDetail.DayLow.Raw
-		//dayHigh := t.QuoteSummary.Result[0].SummaryDetail.DayHigh.Raw
-		//prevClose := t.QuoteSummary.Result[0].SummaryDetail.PreviousClose.Raw
 		regMarketChange := t.QuoteSummary.Result[0].Price.RegularMarketChange.Raw
 		regMarketChangePercent := t.QuoteSummary.Result[0].Price.RegularMarketChangePercent.Raw
 		volume := t.QuoteSummary.Result[0].SummaryDetail.Volume.Fmt
@@ -130,9 +123,6 @@ func makeFiles(userDir string) {
 		handleErr(err)
 		err = ioutil.WriteFile(userDir+"\\.goStocks\\goStock.exe", data, 0644)
 		handleErr(err)
-
-		//os.Setenv("goStock", userDir+"\\.goStocks\\goStock.exe")
-
 		fmt.Println("Your Portfolio Files Have Been Created! Get Help By Using The Argument -h")
 		handleErr(errDir)
 	}
