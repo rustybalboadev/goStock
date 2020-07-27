@@ -74,7 +74,11 @@ func handleErr(err error) {
 }
 
 func showStonks(stonks []string) {
+<<<<<<< HEAD
 	for i := 0; i < len(stonks); i++ {
+=======
+	for i := 0; i < len(stonks)-1; i++ {
+>>>>>>> 0b9d93f8f5fc4e2dd53884aba95af875b47a1a90
 		resp, err := http.Get("https://query1.finance.yahoo.com/v11/finance/quoteSummary/" + stonks[i] + "?modules=summaryDetail,price")
 		handleErr(err)
 		b, err := ioutil.ReadAll(resp.Body)
@@ -84,7 +88,11 @@ func showStonks(stonks []string) {
 		err = json.Unmarshal([]byte(string(body)), &t)
 		if t.QuoteSummary.Error.Description != "" {
 			remove(stonks[i])
+<<<<<<< HEAD
 			fmt.Println(color.RedString("\n!!!Stonk Symbol '" + stonks[i] + "' Is Invalid!!!"))
+=======
+			fmt.Println(color.RedString("\n\n!!!Stonk Symbol '" + stonks[i] + "' Is Invalid!!!"))
+>>>>>>> 0b9d93f8f5fc4e2dd53884aba95af875b47a1a90
 			os.Exit(0)
 		}
 		symbol := t.QuoteSummary.Result[0].Price.Symbol
@@ -116,6 +124,7 @@ func readJSON() []string {
 		fmt.Println(err)
 	}
 
+<<<<<<< HEAD
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	json.Unmarshal([]byte(byteValue), &stock)
 	jsonFile.Close()
@@ -137,6 +146,14 @@ func makeFiles() {
 	_, makeDir := os.Stat(userDir + "\\.goStocks")
 	if os.IsNotExist(makeDir) {
 		errDir := os.Mkdir(userDir+"\\.goStocks", 0755)
+=======
+		exe, err := os.Executable()
+		handleErr(err)
+		data, err := ioutil.ReadFile(exe)
+		handleErr(err)
+		err = ioutil.WriteFile(userDir+"\\.goStocks\\goStock.exe", data, 0644)
+		handleErr(err)
+>>>>>>> 0b9d93f8f5fc4e2dd53884aba95af875b47a1a90
 		fmt.Println("Your Portfolio Files Have Been Created! Get Help By Using The Argument -h")
 		handleErr(errDir)
 	}

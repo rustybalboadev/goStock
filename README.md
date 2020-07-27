@@ -22,8 +22,8 @@ Arguments:
 
 # Usage
 1. Open Up Terminal
-2. Navigate to Executable Location
-3. Run ``goStock.exe -h`` (After You Run goStock Once You'll Be Able To Run It By Doing ``goStock``)
+2. run ``go get github.com/RustyBalboadev/goStock``
+3. Run ``goStock -h``
 4. Start Adding Stonks! 📈
 5. Enjoy :)
 
