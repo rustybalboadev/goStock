@@ -14,12 +14,17 @@ import (
 	"github.com/fatih/color"
 )
 
-func main() {
-	stonks := []string{}
+//Stock struct
+type Stock struct {
+	Stocks []string
+}
 
+var stock Stock
+
+func main() {
 	userDir, err := os.UserHomeDir()
 	handleErr(err)
-	makeFiles(userDir)
+	makeFiles()
 
 	parser := argparse.NewParser("goStock", "goStock Commands")
 	addStonk := parser.String("a", "add", &argparse.Options{Help: "Add a Stonk Using Its Symbol", Required: false})
@@ -31,10 +36,9 @@ func main() {
 
 	if *addStonk != "" {
 		stripped := strings.Trim(*addStonk, " ")
-		f, err := os.OpenFile(userDir+"\\.goStocks\\config.txt", os.O_APPEND, 0600)
-		handleErr(err)
-		f.WriteString(stripped + "\n")
-		f.Close()
+		readJSON()
+		stock.Stocks = append(stock.Stocks, stripped)
+		writeJSON(stock)
 	}
 
 	if *removeStonk != "" {
@@ -44,28 +48,21 @@ func main() {
 
 	if *clearBool {
 		color.Green("All Stonks Have Been Cleared")
-		os.Remove(userDir + "\\.goStocks\\config.txt")
-		makeFiles(userDir)
+		os.Remove(userDir + "\\.goStocks\\config.json")
+		makeFiles()
 	}
 
-	data, err := ioutil.ReadFile(userDir + "\\.goStocks\\config.txt")
-	handleErr(err)
-
-	split := strings.Split(string(data), "\n")
-	for i := 0; i < len(split); i++ {
-		stonks = append(stonks, split[i])
-	}
-
+	jsonData := readJSON()
 	if *repeatStonk != 0 {
 		for {
-			showStonks(stonks)
+			showStonks(jsonData)
 			time.Sleep(time.Duration(*repeatStonk) * time.Second)
 			cmd := exec.Command("cmd", "/c", "cls")
 			cmd.Stdout = os.Stdout
 			cmd.Run()
 		}
 	} else {
-		showStonks(stonks)
+		showStonks(jsonData)
 	}
 
 }
@@ -77,8 +74,7 @@ func handleErr(err error) {
 }
 
 func showStonks(stonks []string) {
-	for i := 0; i < len(stonks)-1; i++ {
-		//userDir, err := os.UserHomeDir()
+	for i := 0; i < len(stonks); i++ {
 		resp, err := http.Get("https://query1.finance.yahoo.com/v11/finance/quoteSummary/" + stonks[i] + "?modules=summaryDetail,price")
 		handleErr(err)
 		b, err := ioutil.ReadAll(resp.Body)
@@ -88,17 +84,11 @@ func showStonks(stonks []string) {
 		err = json.Unmarshal([]byte(string(body)), &t)
 		if t.QuoteSummary.Error.Description != "" {
 			remove(stonks[i])
-			//log.Fatal(color.RedString("Stonk Symbol " + stonks[i] + " Is Invalid"))
-			fmt.Println(color.RedString("\n\n!!!Stonk Symbol '" + stonks[i] + "' Is Invalid!!!"))
+			fmt.Println(color.RedString("\n!!!Stonk Symbol '" + stonks[i] + "' Is Invalid!!!"))
 			os.Exit(0)
 		}
 		symbol := t.QuoteSummary.Result[0].Price.Symbol
-		//currency := t.QuoteSummary.Result[0].SummaryDetail.Currency
 		bid := fmt.Sprintf("%.2f", t.QuoteSummary.Result[0].SummaryDetail.Bid.Raw)
-		//ask := t.QuoteSummary.Result[0].SummaryDetail.Ask.Raw
-		//dayLow := t.QuoteSummary.Result[0].SummaryDetail.DayLow.Raw
-		//dayHigh := t.QuoteSummary.Result[0].SummaryDetail.DayHigh.Raw
-		//prevClose := t.QuoteSummary.Result[0].SummaryDetail.PreviousClose.Raw
 		regMarketChange := t.QuoteSummary.Result[0].Price.RegularMarketChange.Raw
 		regMarketChangePercent := t.QuoteSummary.Result[0].Price.RegularMarketChangePercent.Raw
 		volume := t.QuoteSummary.Result[0].SummaryDetail.Volume.Fmt
@@ -118,48 +108,63 @@ func showStonks(stonks []string) {
 	}
 }
 
-func makeFiles(userDir string) {
+func readJSON() []string {
 
+	userDir, err := os.UserHomeDir()
+	jsonFile, err := os.Open(userDir + "\\.goStocks\\config.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	json.Unmarshal([]byte(byteValue), &stock)
+	jsonFile.Close()
+	return stock.Stocks
+
+}
+
+func writeJSON(jsonData Stock) {
+	userDir, err := os.UserHomeDir()
+	handleErr(err)
+	file, _ := json.MarshalIndent(jsonData, "", " ")
+	_ = ioutil.WriteFile(userDir+"\\.goStocks\\config.json", file, 0644)
+
+}
+
+func makeFiles() {
+	userDir, err := os.UserHomeDir()
+	handleErr(err)
 	_, makeDir := os.Stat(userDir + "\\.goStocks")
 	if os.IsNotExist(makeDir) {
 		errDir := os.Mkdir(userDir+"\\.goStocks", 0755)
-
-		exe, err := os.Executable()
-		handleErr(err)
-		data, err := ioutil.ReadFile(exe)
-		handleErr(err)
-		err = ioutil.WriteFile(userDir+"\\.goStocks\\goStock.exe", data, 0644)
-		handleErr(err)
-
-		//os.Setenv("goStock", userDir+"\\.goStocks\\goStock.exe")
-
 		fmt.Println("Your Portfolio Files Have Been Created! Get Help By Using The Argument -h")
 		handleErr(errDir)
 	}
-	_, makeFile := os.Stat(userDir + "\\.goStocks\\config.txt")
+	_, makeFile := os.Stat(userDir + "\\.goStocks\\config.json")
 	if os.IsNotExist(makeFile) {
-		errFile, err := os.Create(userDir + "\\.goStocks\\config.txt")
+		errFile, err := os.Create(userDir + "\\.goStocks\\config.json")
 		if err != nil {
 			fmt.Println(errFile)
 		}
+		stockVar := Stock{
+			Stocks: []string{},
+		}
+		file, _ := json.MarshalIndent(stockVar, "", " ")
+		_ = ioutil.WriteFile(userDir+"\\.goStocks\\config.json", file, 0644)
 	}
 }
 
 func remove(stonk string) {
 	userDir, err := os.UserHomeDir()
-	data, err := ioutil.ReadFile(userDir + "\\.goStocks\\config.txt")
 	handleErr(err)
-	splitted := strings.Split(string(data), "\n")
-	newData := ""
-	for i := 0; i < len(splitted)-1; i++ {
-		if splitted[i] != stonk {
-			newData += splitted[i] + "\n"
+	newData := []string{}
+	for i := 0; i < len(stock.Stocks); i++ {
+		if stock.Stocks[i] != stonk {
+			newData = append(newData, stock.Stocks[i])
 		}
 	}
-	os.Remove(userDir + "\\.goStocks\\config.txt")
-	makeFiles(userDir)
-	f, err := os.OpenFile(userDir+"\\.goStocks\\config.txt", os.O_APPEND, 0600)
-	handleErr(err)
-	f.WriteString(newData)
-	f.Close()
+	stock.Stocks = newData
+	os.Remove(userDir + "\\.goStocks\\config.json")
+	makeFiles()
+	writeJSON(stock)
 }
