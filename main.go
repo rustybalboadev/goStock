@@ -154,6 +154,7 @@ func makeFiles() {
 }
 
 func remove(stonk string) {
+	readJSON()
 	userDir, err := os.UserHomeDir()
 	handleErr(err)
 	newData := []string{}
